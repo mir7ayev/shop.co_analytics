@@ -32,6 +32,7 @@ INSTALLED_APPS = [
 
     # Custom apps
     'analytics',
+    'core',
 ]
 
 MIDDLEWARE = [
