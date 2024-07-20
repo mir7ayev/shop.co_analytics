@@ -123,4 +123,4 @@ MEDIA_ROOT = 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
-AUTH_SECRET_KEY = "bac2bd9f-2c57-4901-b01e-7bf4e561c363"
+AUTH_SECRET_KEY = "6fe32edd-7652-4da6-b7fb-37b57c410b5f"
