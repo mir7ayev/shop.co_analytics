@@ -71,10 +71,10 @@ class AnalyticsViewSet(ViewSet):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'product_id': openapi.Schema(type=openapi.TYPE_INTEGER),
                 'user_id': openapi.Schema(type=openapi.TYPE_INTEGER),
             },
-            required=['post_id', 'user_id'],
+            required=['product_id', 'user_id'],
         ),
         responses={200: ProductViewSerializer()},
     )
@@ -87,10 +87,10 @@ class AnalyticsViewSet(ViewSet):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'product_id': openapi.Schema(type=openapi.TYPE_INTEGER),
                 'gender': openapi.Schema(type=openapi.TYPE_STRING),
             },
-            required=['post_id', 'gender'],
+            required=['product_id', 'gender'],
         ),
         responses={200: ProductViewByGenderSerializer()},
     )
@@ -103,10 +103,10 @@ class AnalyticsViewSet(ViewSet):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'product_id': openapi.Schema(type=openapi.TYPE_INTEGER),
                 'age': openapi.Schema(type=openapi.TYPE_INTEGER),
             },
-            required=['post_id', 'age'],
+            required=['product_id', 'age'],
         ),
         responses={200: ProductViewByAgeSerializer()},
     )
@@ -119,10 +119,10 @@ class AnalyticsViewSet(ViewSet):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'post_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'product_id': openapi.Schema(type=openapi.TYPE_INTEGER),
                 'country': openapi.Schema(type=openapi.TYPE_STRING),
             },
-            required=['post_id', 'country'],
+            required=['product_id', 'country'],
         ),
         responses={200: ProductViewByCountrySerializer()},
     )
