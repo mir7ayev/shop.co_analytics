@@ -11,6 +11,7 @@ from django.db import models
 from django.core.cache import cache
 from typing import Type
 from core.utils import get_user_data
+from django.shortcuts import get_object_or_404
 from .models import (
     ProductView, ProductViewByAge, ProductViewByGender,
     ProductViewByCountry,
@@ -63,7 +64,6 @@ class AnalyticsViewSet(ViewSet):
             view_obj.save()
 
         cache.set(cache_key, True, 24 * 60 * 60)
-
         return Response("success", status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
@@ -129,3 +129,47 @@ class AnalyticsViewSet(ViewSet):
     @action(detail=True, methods=['post'])
     def increment_view_by_country(self, request):
         return self.increment_view(request, ProductViewByCountry, 'country', 'country')
+
+
+class AnalyticsListViewSet(ViewSet):
+    # permission_classes = (IsAuthenticated,)
+
+    @swagger_auto_schema(
+        operation_summary="Get product view count by product ID",
+        manual_parameters=[openapi.Parameter('product_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER)],
+        responses={200: openapi.Response(description="Successful retrieval"), 404: "Product ID not found"}
+    )
+    @action(detail=True, methods=['get'])
+    def analytics_product_view(self, request):
+        product_id = request.query_params.get('product_id')
+        if product_id is None:
+            return Response("Product id is not found", status=status.HTTP_404_NOT_FOUND)
+
+        analytics = ProductView.objects.filter(product_id=product_id)
+        if analytics is None:
+            return Response("No data found for the given product", status=status.HTTP_404_NOT_FOUND)
+
+        serializer = {
+            'product_id': product_id,
+            'view_count': sum([i.view_count for i in analytics])
+        }
+
+        return Response(serializer, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_summary="Get product view analytics by user ID",
+        manual_parameters=[openapi.Parameter('user_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER)],
+        responses={200: ProductViewSerializer(many=True)}
+    )
+    @action(detail=True, methods=['get'])
+    def analytics_product_view_by_user(self, request):
+        user_id = request.query_params.get('user_id')
+        if user_id is None:
+            return Response("User id is not found", status=status.HTTP_404_NOT_FOUND)
+
+        analytics = ProductView.objects.filter(user_id=user_id)
+        if analytics is None:
+            return Response("No data found for the given user", status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProductViewSerializer(analytics, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
