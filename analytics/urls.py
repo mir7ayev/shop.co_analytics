@@ -11,4 +11,6 @@ urlpatterns = [
     path('analytics-product-view/', AnalyticsListViewSet.as_view({'get': 'analytics_product_view'})),
     path('analytics-product-view-by-user/', AnalyticsListViewSet.as_view({'get': 'analytics_product_view_by_user'})),
 
+    path('most-viewed-products/', AnalyticsListViewSet.as_view({'get': 'most_viewed_products'})),
+
 ]

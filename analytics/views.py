@@ -1,3 +1,5 @@
+import requests
+
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -10,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db import models
 from django.core.cache import cache
 from typing import Type
-from core.utils import get_user_data
+from core.utils import get_user_data, get_products_data
 from django.shortcuts import get_object_or_404
 from .models import (
     ProductView, ProductViewByAge, ProductViewByGender,
@@ -21,6 +23,8 @@ from .serializers import (
     ProductViewByCountrySerializer,
 )
 
+# TODO: GET CACHE FROM OTHER MICROSERVICE
+# TODO: DO MORE BEAUTIFUL ANALYTICS BY USER_ID AND PRODUCT_ID
 
 # TODO: 1. NEWEST PRODUCTS
 # TODO: 2. MOST VIEWED PRODUCTS
@@ -77,6 +81,7 @@ class AnalyticsViewSet(ViewSet):
             required=['product_id', 'user_id'],
         ),
         responses={200: ProductViewSerializer()},
+        tags=['Increment']
     )
     @action(detail=True, methods=['post'])
     def increment_product_view(self, request):
@@ -93,6 +98,7 @@ class AnalyticsViewSet(ViewSet):
             required=['product_id', 'gender'],
         ),
         responses={200: ProductViewByGenderSerializer()},
+        tags=['Increment']
     )
     @action(detail=True, methods=['post'])
     def increment_view_by_gender(self, request):
@@ -109,6 +115,7 @@ class AnalyticsViewSet(ViewSet):
             required=['product_id', 'age'],
         ),
         responses={200: ProductViewByAgeSerializer()},
+        tags=['Increment']
     )
     @action(detail=True, methods=['post'])
     def increment_view_by_age(self, request):
@@ -125,6 +132,7 @@ class AnalyticsViewSet(ViewSet):
             required=['product_id', 'country'],
         ),
         responses={200: ProductViewByCountrySerializer()},
+        tags=['Increment']
     )
     @action(detail=True, methods=['post'])
     def increment_view_by_country(self, request):
@@ -137,7 +145,8 @@ class AnalyticsListViewSet(ViewSet):
     @swagger_auto_schema(
         operation_summary="Get product view count by product ID",
         manual_parameters=[openapi.Parameter('product_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER)],
-        responses={200: openapi.Response(description="Successful retrieval"), 404: "Product ID not found"}
+        responses={200: openapi.Response(description="Successful retrieval"), 404: "Product ID not found"},
+        tags=['Analytics']
     )
     @action(detail=True, methods=['get'])
     def analytics_product_view(self, request):
@@ -159,7 +168,8 @@ class AnalyticsListViewSet(ViewSet):
     @swagger_auto_schema(
         operation_summary="Get product view analytics by user ID",
         manual_parameters=[openapi.Parameter('user_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER)],
-        responses={200: ProductViewSerializer(many=True)}
+        responses={200: ProductViewSerializer(many=True)},
+        tags=['Analytics']
     )
     @action(detail=True, methods=['get'])
     def analytics_product_view_by_user(self, request):
@@ -173,3 +183,32 @@ class AnalyticsListViewSet(ViewSet):
 
         serializer = ProductViewSerializer(analytics, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Get most viewed products.",
+        responses={200: 'List of most viewed products'},
+        tags=['Analytics']
+    )
+    @action(detail=True, methods=['get'])
+    def most_viewed_products(self, request):
+        product_view_obj = ProductView.objects.all()
+        count_by_id = {}
+
+        for item in product_view_obj:
+            if item.product_id in count_by_id:
+                count_by_id[item.product_id] += item.view_count
+            else:
+                count_by_id[item.product_id] = item.view_count
+
+        counted_products = [{'id': i, 'view_count': n} for i, n in count_by_id.items()]
+        products = get_products_data()
+
+        for product in products:
+            for counted_product in counted_products:
+                if product['id'] == counted_product['id']:
+                    product['view_count'] = counted_product['view_count']
+                else:
+                    product['view_count'] = 0
+
+        products.sort(key=lambda x: x['view_count'], reverse=True)
+        return Response(products, status=status.HTTP_200_OK)
