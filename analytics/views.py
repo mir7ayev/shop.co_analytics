@@ -23,6 +23,7 @@ from .serializers import (
     ProductViewByCountrySerializer,
 )
 
+
 # TODO: GET CACHE FROM OTHER MICROSERVICE
 # TODO: DO MORE BEAUTIFUL ANALYTICS BY USER_ID AND PRODUCT_ID
 
@@ -204,11 +205,10 @@ class AnalyticsListViewSet(ViewSet):
         products = get_products_data()
 
         for product in products:
+            product['view_count'] = 0
             for counted_product in counted_products:
                 if product['id'] == counted_product['id']:
                     product['view_count'] = counted_product['view_count']
-                else:
-                    product['view_count'] = 0
 
         products.sort(key=lambda x: x['view_count'], reverse=True)
         return Response(products, status=status.HTTP_200_OK)
